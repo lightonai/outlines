@@ -40,20 +40,20 @@ def _patched_apply_logits_processors(
 
 
 class RegexLogitsProcessor:
-    def __init__(self, regex_string, llm):
+    def __init__(self, regex_string, tokenizer):
         """Compile the FSM that drives the regex-guided generation.
 
         Parameters
         ----------
         regex_string
             A string that represents a regular expression
-        llm
-            An instance of `vllm.LLM`
+        tokenizer
+            An instance of `transformers.PreTrainedTokenizer`
 
         """
-        tokenizer = self.adapt_tokenizer(llm.tokenizer)
+        _tokenizer = self.adapt_tokenizer(tokenizer)
 
-        fsm = RegexFSM(regex_string, tokenizer)
+        fsm = RegexFSM(regex_string, _tokenizer)
         self.fsm = fsm
 
     def __call__(
@@ -105,18 +105,18 @@ class RegexLogitsProcessor:
 
 
 class JSONLogitsProcessor(RegexLogitsProcessor):
-    def __init__(self, schema, llm):
+    def __init__(self, schema, tokenizer):
         """Compile the FSM that drives the JSON-guided generation.
 
         Parameters
         ----------
         schema
             A JSON schema that encodes the structure we want the model to generate
-        llm
-            An instance of `vllm.LLM`
+        tokenizer
+            An instance of `transformers.PreTrainedTokenizer`
 
         """
         if isinstance(schema, dict):
             schema = json.dumps(schema)
         regex_string = build_regex_from_object(schema)
-        super().__init__(regex_string, llm)
+        super().__init__(regex_string, tokenizer)

@@ -1,11 +1,12 @@
 import asyncio
 import time
+import uuid
 from fastapi import Request
 from typing import AsyncGenerator, AsyncIterator, Callable, List, Optional
 from vllm.logger import init_logger
 from vllm.utils import random_uuid
 from vllm.engine.async_llm_engine import AsyncLLMEngine
-from .protocol import (
+from outlines.serve.openai.protocol import (
     CompletionRequest,
     CompletionResponse,
     CompletionResponseChoice,
@@ -15,7 +16,7 @@ from .protocol import (
     UsageInfo,
 )
 from vllm.outputs import RequestOutput
-from vllm.entrypoints.openai.serving_engine import OpenAIServing
+from outlines.serve.openai.serving_engine import OpenAIServing
 
 logger = init_logger(__name__)
 
@@ -277,13 +278,13 @@ class OpenAIServingCompletion(OpenAIServing):
                 "logit_bias is not currently supported")
 
         model_name = request.model
-        request_id = f"cmpl-{random_uuid()}"
+        request_id = str(uuid.uuid4())
         created_time = int(time.monotonic())
 
         # Schedule the request and get the result generator.
         generators = []
         try:
-            sampling_params = request.to_sampling_params()
+            sampling_params = request.to_sampling_params(self.tokenizer)
             prompt_is_tokens, prompts = parse_prompt_format(request.prompt)
 
             for i, prompt in enumerate(prompts):
