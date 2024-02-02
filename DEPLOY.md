@@ -1,5 +1,13 @@
 # Deploy a model to SageMaker
 
+## Install dependencies
+
+```bash
+pip install -r requirements-utils.txt
+```
+
+## Deploy a model
+
 Deploy a model to SageMaker:
 
 ```bash
