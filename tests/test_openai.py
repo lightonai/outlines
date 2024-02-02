@@ -89,6 +89,7 @@ def test_completion_json(stream):
             print(c.model_dump_json())
     else:
         print(completion.model_dump_json())
+        print(json.loads(completion.choices[0].text))
 
 
 @pytest.mark.parametrize("stream", [False, True])
@@ -137,7 +138,7 @@ def test_chat_json(stream):
     print(f"=== Chat JSON (stream={stream}) ===")
     completion = client.chat.completions.create(
         messages=[
-            {"role": "user", "content": "Give me a character."},
+            {"role": "user", "content": "Give me a character with a strength of 124."},
         ],
         model=model,
         stream=stream,
@@ -153,6 +154,7 @@ def test_chat_json(stream):
             print(c.model_dump_json())
     else:
         print(completion.model_dump_json())
+        print(json.loads(completion.choices[0].message.content))
 
 
 @pytest.mark.parametrize("stream", [False, True])
