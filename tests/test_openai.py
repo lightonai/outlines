@@ -59,7 +59,7 @@ def test_completion(stream):
         model=model,
         temperature=0.0,
         max_tokens=100,
-        prompt="Give me a character.",
+        prompt="Give me a character named Charles with a strength of 124.",
         echo=False,
         stream=stream,
     )
@@ -77,7 +77,7 @@ def test_completion_json(stream):
         model=model,
         temperature=0.0,
         max_tokens=100,
-        prompt="Give me a character.",
+        prompt="Give me a character named Charles with a strength of 124.",
         echo=False,
         stream=stream,
         extra_body={
@@ -118,7 +118,7 @@ def test_chat(stream):
     print(f"=== Chat (stream={stream}) ===")
     completion = client.chat.completions.create(
         messages=[
-            {"role": "user", "content": "Give me a character."},
+            {"role": "user", "content": "Give me a character named Charles with a strength of 124."},
         ],
         model=model,
         stream=stream,
@@ -138,7 +138,7 @@ def test_chat_json(stream):
     print(f"=== Chat JSON (stream={stream}) ===")
     completion = client.chat.completions.create(
         messages=[
-            {"role": "user", "content": "Give me a character with a strength of 124."},
+            {"role": "user", "content": "Give me a character named Charles with a strength of 124."},
         ],
         model=model,
         stream=stream,
