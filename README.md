@@ -64,3 +64,18 @@ docker run --runtime nvidia --gpus all \
     --host 0.0.0.0 \
     --load-format safetensors
 ```
+
+For Alfred:
+    
+```bash
+docker run --runtime nvidia --gpus all \
+    -v ~/.cache/huggingface:/root/.cache/huggingface \
+    -p 8000:8000 \
+    --ipc=host \
+    -e SERVED_MODEL_NAME=alfred \
+    -e MODEL=lightonai/alfred-40b-1023 \
+    outlines \
+    --tensor-parallel-size 4 \
+    --host 0.0.0.0 \
+    --trust-remote-code
+```
