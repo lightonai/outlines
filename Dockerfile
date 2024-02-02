@@ -1,17 +1,16 @@
-FROM python:3.10
+FROM vllm
 
-WORKDIR /outlines
+# Install git
+RUN apt-get update && apt-get install -y git
 
-RUN pip install --upgrade pip
+WORKDIR /workspace
 
-# Copy necessary build components
-COPY pyproject.toml .
-COPY outlines ./outlines
+COPY requirements.txt ./requirements-outlines.txt
 
-# Install outlines and outlines[serve]
-# .git required by setuptools-scm
-RUN --mount=source=.git,target=.git,type=bind \
-    pip install --no-cache-dir .[serve]
+RUN python3 -m pip install -U pip && python3 -m pip install -r requirements-outlines.txt
 
-# https://outlines-dev.github.io/outlines/reference/vllm/
-ENTRYPOINT python3 -m outlines.serve.serve
+COPY outlines outlines
+
+# Start the server
+RUN chmod +x outlines/entrypoint.sh
+ENTRYPOINT ["outlines/entrypoint.sh"]
