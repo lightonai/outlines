@@ -1,12 +1,22 @@
 # Adapted from
 # https://github.com/lm-sys/FastChat/blob/168ccc29d3f7edc50823016105c024fe2282732a/fastchat/protocol/openai_api_protocol.py
 import time
-from typing import Dict, List, Literal, Optional, Union
+from typing import Dict, List, Literal, Optional, Union, Any
 
 from pydantic import BaseModel, Field
 
 from vllm.utils import random_uuid
 from vllm.sampling_params import SamplingParams
+
+import vllm.model_executor.layers.sampler as sampler
+from ..vllm import (
+    JSONLogitsProcessor,
+    RegexLogitsProcessor,
+    _patched_apply_logits_processors,
+)
+
+# Patch the _apply_logits_processors so it is compatible with `JSONLogitsProcessor`
+sampler._apply_logits_processors = _patched_apply_logits_processors
 
 
 class ErrorResponse(BaseModel):
@@ -80,8 +90,19 @@ class ChatCompletionRequest(BaseModel):
     min_p: Optional[float] = 0.0
     include_stop_str_in_output: Optional[bool] = False
     length_penalty: Optional[float] = 1.0
+    json_schema: Optional[Any] = None
+    regex: Optional[Any] = None
 
-    def to_sampling_params(self) -> SamplingParams:
+    def to_sampling_params(self, tokenizer) -> SamplingParams:
+        json_schema = self.json_schema
+        regex_string = self.regex
+        if json_schema is not None:
+            logits_processors = [JSONLogitsProcessor(json_schema, tokenizer)]
+        elif regex_string is not None:
+            logits_processors = [RegexLogitsProcessor(regex_string, tokenizer)]
+        else:
+            logits_processors = []
+        
         return SamplingParams(
             n=self.n,
             presence_penalty=self.presence_penalty,
@@ -101,6 +122,7 @@ class ChatCompletionRequest(BaseModel):
             spaces_between_special_tokens=self.spaces_between_special_tokens,
             include_stop_str_in_output=self.include_stop_str_in_output,
             length_penalty=self.length_penalty,
+            logits_processors=logits_processors,
         )
 
 
@@ -133,9 +155,20 @@ class CompletionRequest(BaseModel):
     min_p: Optional[float] = 0.0
     include_stop_str_in_output: Optional[bool] = False
     length_penalty: Optional[float] = 1.0
+    json_schema: Optional[Any] = None
+    regex: Optional[Any] = None
 
-    def to_sampling_params(self):
+    def to_sampling_params(self, tokenizer) -> SamplingParams:
         echo_without_generation = self.echo and self.max_tokens == 0
+
+        json_schema = self.json_schema
+        regex_string = self.regex
+        if json_schema is not None:
+            logits_processors = [JSONLogitsProcessor(json_schema, tokenizer)]
+        elif regex_string is not None:
+            logits_processors = [RegexLogitsProcessor(regex_string, tokenizer)]
+        else:
+            logits_processors = []
 
         return SamplingParams(
             n=self.n,
@@ -158,7 +191,33 @@ class CompletionRequest(BaseModel):
             spaces_between_special_tokens=(self.spaces_between_special_tokens),
             include_stop_str_in_output=self.include_stop_str_in_output,
             length_penalty=self.length_penalty,
+            logits_processors=logits_processors,
         )
+
+
+class TokenizeCompletionRequest(BaseModel):
+    model: str
+    prompt: Optional[str] = None
+    messages: Optional[Union[str, List[Dict[str, str]]]] = None
+    add_generation_prompt: Optional[bool] = True
+
+
+class TokenizeResponse(BaseModel):
+    id: str
+    tokens: Any
+    text: str
+    n_tokens: int
+
+
+class InvocationRequest(BaseModel):
+    endpoint: str
+    payload: Optional[
+        Union[
+            ChatCompletionRequest,
+            CompletionRequest,
+            TokenizeCompletionRequest,
+        ]
+    ]
 
 
 class LogProbs(BaseModel):

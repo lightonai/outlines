@@ -43,8 +43,8 @@ class RegexLogitsProcessor:
         ----------
         regex_string
             A string that represents a regular expression
-        llm
-            An instance of `vllm.LLM`
+        tokenizer
+            An instance of `transformers.PreTrainedTokenizer`
 
         """
         if hasattr(llm, "get_tokenizer"):
@@ -61,7 +61,7 @@ class RegexLogitsProcessor:
             )
         tokenizer = self.adapt_tokenizer(tokenizer=tokenizer)
 
-        fsm = RegexFSM(regex_string, tokenizer)
+        fsm = RegexFSM(regex_string, _tokenizer)
         self.fsm = fsm
 
     def __call__(self, input_ids: List[int], scores: torch.Tensor) -> torch.Tensor:
