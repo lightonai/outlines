@@ -12,3 +12,5 @@ CONTAINER_URI="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/vllm:latest"
 aws ecr get-login-password --region "${REGION}" | docker login --username AWS --password-stdin "${ACCOUNT_ID}".dkr.ecr."${REGION}".amazonaws.com
 
 docker pull $CONTAINER_URI
+
+docker tag $CONTAINER_URI vllm
