@@ -14,7 +14,9 @@ To deploy a model to SageMaker using this image, follow the guide in [DEPLOY.md]
 
 ### Pull the dependency image from ECR
 
-This will pull the `vllm` image from ECR.
+The [`lightonai/vllm`](https://github.com/lightonai/vllm) image is a dependency of the outlines image. You need it for development and production build.
+
+This command will pull the `lightonai/vllm` image from ECR.
 
 ```bash
 sh docker/pull-deps.sh
