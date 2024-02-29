@@ -81,3 +81,16 @@ docker run --runtime nvidia --gpus all \
     --host 0.0.0.0 \
     --trust-remote-code
 ```
+
+## Upgrade version
+
+You can upgrade the version of outlines by rebasing on the official repo:
+
+```bash
+git clone https://github.com/lightonai/outlines
+git remote add official https://github.com/outlines-dev/outlines
+git fetch official
+git rebase official/main
+git rebase --continue # After resolving conflicts (if any), continue the rebase
+git push origin main --force
+```
