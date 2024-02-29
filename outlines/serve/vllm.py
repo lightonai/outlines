@@ -36,7 +36,7 @@ from outlines.fsm.json_schema import build_regex_from_schema
 
 
 class RegexLogitsProcessor:
-    def __init__(self, regex_string, llm):
+    def __init__(self, regex_string, tokenizer):
         """Compile the FSM that drives the regex-structured generation.
 
         Parameters
@@ -47,18 +47,6 @@ class RegexLogitsProcessor:
             An instance of `transformers.PreTrainedTokenizer`
 
         """
-        if hasattr(llm, "get_tokenizer"):
-            tokenizer = llm.get_tokenizer()
-        elif hasattr(llm, "tokenizer"):
-            if hasattr(llm.tokenizer, "tokenizer"):
-                tokenizer = llm.tokenizer.tokenizer
-            else:
-                tokenizer = llm.tokenizer
-        else:
-            raise ValueError(
-                "The provided LLM instance in `RegexLogitsProcessor` neither has a "
-                "`tokenizer` attribute or a `get_tokenizer` method."
-            )
         tokenizer = self.adapt_tokenizer(tokenizer=tokenizer)
 
         fsm = RegexFSM(regex_string, _tokenizer)
@@ -114,7 +102,7 @@ class RegexLogitsProcessor:
 
 
 class JSONLogitsProcessor(RegexLogitsProcessor):
-    def __init__(self, schema: Dict, llm, whitespace_pattern: Optional[str] = None):
+    def __init__(self, schema: Dict, tokenizer, whitespace_pattern: Optional[str] = None):
         """Compile the FSM that drives the JSON-guided generation.
 
         Parameters
@@ -140,4 +128,4 @@ class JSONLogitsProcessor(RegexLogitsProcessor):
                 + "Schema specification"
             )
         regex_string = build_regex_from_schema(schema_str, whitespace_pattern)
-        super().__init__(regex_string, llm)
+        super().__init__(regex_string, tokenizer)

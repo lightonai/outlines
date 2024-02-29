@@ -2,7 +2,7 @@ import time
 import uuid
 import codecs
 from fastapi import Request
-from typing import AsyncGenerator, AsyncIterator, Union
+from typing import AsyncGenerator, AsyncIterator, Optional, List, Union
 from vllm.logger import init_logger
 from vllm.utils import random_uuid
 from vllm.engine.async_llm_engine import AsyncLLMEngine
@@ -12,7 +12,7 @@ from outlines.serve.openai.protocol import (
     ChatCompletionStreamResponse, ChatMessage, DeltaMessage, ErrorResponse,
     UsageInfo)
 from vllm.outputs import RequestOutput
-from outlines.serve.openai.serving_engine import OpenAIServing
+from outlines.serve.openai.serving_engine import OpenAIServing, LoRA
 
 logger = init_logger(__name__)
 
@@ -23,8 +23,11 @@ class OpenAIServingChat(OpenAIServing):
                  engine: AsyncLLMEngine,
                  served_model: str,
                  response_role: str,
+                 lora_modules: Optional[List[LoRA]] = None,
                  chat_template=None):
-        super().__init__(engine=engine, served_model=served_model)
+        super().__init__(engine=engine,
+                         served_model=served_model,
+                         lora_modules=lora_modules)
         self.response_role = response_role
         self._load_chat_template(chat_template)
 
@@ -65,11 +68,13 @@ class OpenAIServingChat(OpenAIServing):
             token_ids = self._validate_prompt_and_tokenize(request,
                                                            prompt=prompt)
             sampling_params = request.to_sampling_params(self.tokenizer)
+            lora_request = self._maybe_get_lora(request)
         except ValueError as e:
             return self.create_error_response(str(e))
 
         result_generator = self.engine.generate(prompt, sampling_params,
-                                                request_id, token_ids)
+                                                request_id, token_ids,
+                                                lora_request)
         # Streaming response
         if request.stream:
             return self.chat_completion_stream_generator(
