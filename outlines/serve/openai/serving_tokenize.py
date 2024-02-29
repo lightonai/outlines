@@ -17,7 +17,7 @@ class OpenAIServingTokenize(OpenAIServing):
                  served_model: str,
                  response_role: str,
                  chat_template=None):
-        super().__init__(engine=engine, served_model=served_model)
+        super().__init__(engine=engine, served_model=served_model, lora_modules=None)
         self.response_role = response_role
         self._load_chat_template(chat_template)
 

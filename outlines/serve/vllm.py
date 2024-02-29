@@ -49,7 +49,7 @@ class RegexLogitsProcessor:
         """
         tokenizer = self.adapt_tokenizer(tokenizer=tokenizer)
 
-        fsm = RegexFSM(regex_string, _tokenizer)
+        fsm = RegexFSM(regex_string, tokenizer)
         self.fsm = fsm
 
     def __call__(self, input_ids: List[int], scores: torch.Tensor) -> torch.Tensor:
